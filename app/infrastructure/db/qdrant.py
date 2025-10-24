@@ -3,6 +3,7 @@ from app.config import settings
 
 client = QdrantClient(url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY)
 
+
 def init_qdrant():
     try:
         client.get_collection(settings.QDRANT_COLLECTION)
@@ -20,7 +21,5 @@ def init_qdrant():
                     ),
                 )
             },
-            optimizers_config=models.OptimizersConfigDiff(
-                default_segment_number=2
-            ),
+            optimizers_config=models.OptimizersConfigDiff(default_segment_number=2),
         )

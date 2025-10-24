@@ -6,11 +6,14 @@ from app.adapters.api.routers import users
 
 app = FastAPI(title=settings.APP_NAME)
 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
+
 app.include_router(users.router)
+
 
 # инициализация БД на старте
 @app.on_event("startup")
