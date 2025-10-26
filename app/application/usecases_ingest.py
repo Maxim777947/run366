@@ -1,3 +1,10 @@
+# Цель:	реализует шаги бизнес-логики, не думает о технических деталях
+# Можно использовать:	доменные модели и интерфейсы (ports)	ORM, SQL, Telegram SDK
+
+
+from datetime import datetime, timezone
+from typing import Mapping, Any
+
 from app.domain.ports import (
     TrackStorage,
     TrackIdGenerator,
@@ -6,14 +13,10 @@ from app.domain.ports import (
     TrackParser,
 )
 from app.domain.track import Track
-from app.infrastructure.db.models.track_metadata import TrackMetadata
-from datetime import datetime
 
 
 class IngestTrackCommand:
-    def __init__(
-        self, user_id: int, filename: str, blob: bytes, source: str = "telegram"
-    ):
+    def __init__(self, user_id: int, filename: str, blob: bytes, source: str = "telegram"):
         self.user_id = user_id
         self.filename = filename
         self.blob = blob
@@ -35,7 +38,7 @@ class IngestTrackUseCase:
         self.parser = parser
         self.meta_repo = meta_repo
 
-    def execute(self, cmd: IngestTrackCommand) -> TrackMetadata:
+    def execute(self, cmd: IngestTrackCommand) -> Mapping[str, Any]:
         fmt = self.detector.detect(cmd.filename, cmd.blob[:512])
         if not fmt:
             raise ValueError("Ожидаю GPX/FIT/TCX")
@@ -46,22 +49,29 @@ class IngestTrackUseCase:
             filename=cmd.filename,
             format=fmt,
             source=cmd.source,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
 
+        # 1) сохраняем сырой файл
         self.storage.save_raw(track, cmd.blob)
+
+        # 2) парсим (инфраструктурой)
         meta = self.parser.parse(fmt, cmd.blob) or {}
 
-        row = TrackMetadata(
-            id=track.id,
-            user_id=track.user_id,
-            filename=track.filename,
-            format=track.format.value,
-            source=track.source,
-            created_at=track.created_at,
-            distance_km=meta.get("distance_km"),
-            duration_s=meta.get("duration_s"),
-            elevation_gain_m=meta.get("elevation_gain_m"),
-        )
-        self.meta_repo.save(row)  # запись в БД
+        # 3) готовим DTO для БД (без ORM)
+        row = {
+            "id": track.id,
+            "user_id": track.user_id,
+            "filename": track.filename,
+            "format": track.format.value,
+            "source": track.source or "telegram",
+            "created_at": track.created_at,
+            "distance_km": meta.get("distance_km"),
+            "duration_s": meta.get("duration_s"),
+            "elevation_gain_m": meta.get("elevation_gain_m"),
+        }
+
+        self.meta_repo.save(row)
+
+        # 5) возвращаем DTO (или track.id)
         return row

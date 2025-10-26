@@ -1,0 +1,4 @@
+ - `domain` — бизнес-сущности (`Track`, `TrackFormat`) и интерфейсы (`ports.py`). **Не знает** о БД/Telegram/HTTP.
+- `application` — сценарии (например, `IngestTrackUseCase`). Зависит только от `domain`.
+- `infrastructure` — реализации портов (Postgres, Qdrant, парсеры, файловое хранилище).
+- `adapters` — внешний интерфейс (Telegram/HTTP): тонкие контроллеры, которые вызывают use case.

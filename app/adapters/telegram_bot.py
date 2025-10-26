@@ -51,14 +51,23 @@ async def handle_document(update, context):
                 source="telegram",
             )
         )
+        print(row)
     await update.message.reply_text(
-        f"✅ Сохранено: {row.filename} ({row.format})\n"
-        f"Дистанция: {row.distance_km} км, Длительность: {row.duration_s} c, Набор: {row.elevation_gain_m} м\n"
-        f"ID: {row.id}"
+        "✅ Сохранено: {filename} ({format})\n"
+        "Дистанция: {distance} км, Длительность: {duration} c, Набор: {gain} м\n"
+        "ID: {tid}".format(
+            filename=row.get("filename"),
+            format=row.get("format"),
+            distance=(row.get("distance_km") or 0),
+            duration=(row.get("duration_s") or 0),
+            gain=(row.get("elevation_gain_m") or 0),
+            tid=row.get("id"),
+        )
     )
 
 
 def main():
+    init_db()
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.COMMAND, start))
