@@ -1,7 +1,10 @@
 {
     "cSpell.words": [
+        "domian",
         "dotenv",
-        "qdrant"
+        "qdrant",
+        "usecase",
+        "usecases"
     ],
         "cSpell.language": "en,ru",
 }
