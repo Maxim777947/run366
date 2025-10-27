@@ -1,3 +1,28 @@
+# run366
+
+Проект организован по принципам Чистой/Луковой архитектуры (Uncle Bob).
+
+Слои:
+- app/domain — чистые сущности и порты (интерфейсы). Никаких ORM/SDK.
+- app/application — сценарии использования (use cases). Оркестрация домена и портов.
+- app/infrastructure — реализации портов (БД, файловое хранилище, парсеры и т.п.).
+- app/adapters — внешние адаптеры (Telegram, HTTP). Сборка зависимостей.
+
+Быстрый старт:
+1. Создайте .env с TELEGRAM_TOKEN и DATABASE_URL при необходимости.
+2. Установите зависимости: pip install -r requirements.txt
+3. Инициализируйте БД/запустите Telegram-бот: python -m app.adapters.telegram_bot
+4. HTTP (FastAPI) вход: python -m app.adapters.api.main (при наличии роутов)
+
+Правила слоёв:
+- Domain не импортирует ничего из infrastructure/adapters.
+- Application зависит только от domain (entities, ports).
+- Infrastructure реализует порты и может зависеть от ORM, клиентов, SDK.
+- Adapters — composition root: создаёт use case и внедряет реализации портов.
+
+Разработка:
+- Добавляйте новые хранилища/клиенты только через порты в domain/ports.py
+- В use case не тяните ORM/HTTP/SDK — только порты.
  - `domain` — бизнес-сущности (`Track`, `TrackFormat`) и интерфейсы (`ports.py`). **Не знает** о БД/Telegram/HTTP.
 - `application` — сценарии (например, `IngestTrackUseCase`). Зависит только от `domain`.
 - `infrastructure` — реализации портов (Postgres, Qdrant, парсеры, файловое хранилище).

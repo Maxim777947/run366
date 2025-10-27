@@ -1,3 +1,8 @@
+"""Infrastructure parser implementation of TrackParser port.
+
+Dispatches by TrackFormat and delegates to concrete parsers.
+"""
+
 from app.domain.ports import TrackParser
 from app.domain.track import TrackFormat
 from .gpx_parser import parse_gpx

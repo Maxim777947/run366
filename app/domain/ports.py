@@ -1,3 +1,12 @@
+"""Domain ports (interfaces) defining boundaries.
+
+Responsibilities:
+- Declare stable interfaces that the application depends upon.
+
+Constraints:
+- No imports from infrastructure or frameworks.
+"""
+
 from typing import Protocol, Optional
 from .track import TrackFormat, Track
 

@@ -1,6 +1,13 @@
-# Цель:	реализует шаги бизнес-логики, не думает о технических деталях
-# Можно использовать:	доменные модели и интерфейсы (ports)	ORM, SQL, Telegram SDK
+"""Application layer use case: orchestrates steps of business logic.
 
+Responsibilities:
+- Coordinate domain and ports to perform a use case.
+- No knowledge of technical details of persistence, network, or frameworks.
+
+Constraints:
+- Do not import or depend on ORM/SQL/HTTP/Telegram SDKs or any frameworks.
+- Depend only on domain entities and ports (protocols) defined in app.domain.
+"""
 
 from datetime import datetime, timezone
 from typing import Mapping, Any
@@ -16,7 +23,9 @@ from app.domain.track import Track
 
 
 class IngestTrackCommand:
-    def __init__(self, user_id: int, filename: str, blob: bytes, source: str = "telegram"):
+    def __init__(
+        self, user_id: int, filename: str, blob: bytes, source: str = "telegram"
+    ):
         self.user_id = user_id
         self.filename = filename
         self.blob = blob

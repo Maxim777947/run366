@@ -1,5 +1,8 @@
-# Доменная сущность
-# Здесь нельзя импортировать SQLModel/ORM/клиенты БД/фреймворки.
+"""Domain entities.
+
+Constraints:
+- Do not import SQLModel/ORM/DB clients/frameworks.
+"""
 
 from datetime import datetime
 

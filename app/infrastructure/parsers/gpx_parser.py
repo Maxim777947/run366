@@ -1,3 +1,5 @@
+"""Concrete GPX parsing logic used by infrastructure parser implementation."""
+
 import gpxpy
 
 

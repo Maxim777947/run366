@@ -1,3 +1,5 @@
+"""Infrastructure ID generator implementation of TrackIdGenerator port."""
+
 import uuid
 from app.domain.ports import TrackIdGenerator
 

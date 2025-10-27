@@ -1,3 +1,5 @@
+"""Infrastructure format detector implementation of TrackFormatDetector port."""
+
 import os
 from typing import Optional
 from app.domain.ports import TrackFormatDetector

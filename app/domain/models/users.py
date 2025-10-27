@@ -1,9 +1,18 @@
+"""Domain must not contain ORM models.
+
+This placeholder makes it explicit that ORM models live in
+`app.infrastructure.db.models`. If a domain-level user entity is needed,
+define it here as a dataclass without any framework/ORM dependencies.
+"""
+
+from dataclasses import dataclass
 from datetime import datetime
-from sqlmodel import SQLModel, Field
+from typing import Optional
 
 
-class User(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    tg_id: int = Field(index=True, unique=True)
-    name: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+@dataclass(frozen=True)
+class User:
+    id: Optional[int]
+    tg_id: int
+    name: Optional[str]
+    created_at: datetime

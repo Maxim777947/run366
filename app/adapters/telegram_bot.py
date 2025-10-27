@@ -1,3 +1,13 @@
+"""Telegram adapter.
+
+Responsibilities:
+- Translate Telegram updates into application commands and return responses.
+- Compose and inject infrastructure implementations into use cases.
+
+Constraints:
+- No domain logic. No direct ORM/SQL here (beyond calling init at startup).
+"""
+
 import os
 from dotenv import load_dotenv
 from telegram import Update
