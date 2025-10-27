@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 """Infrastructure storage: local filesystem implementation of TrackStorage port.
@@ -7,7 +6,7 @@ Saves raw track files under base_dir/<user_id>/<track_id>/<filename>.
 """
 
 from app.domain.ports import TrackStorage
-from app.domain.track import Track
+from app.domain.models.track import Track
 
 
 class LocalFSStorage(TrackStorage):
@@ -26,7 +25,6 @@ class LocalFSStorage(TrackStorage):
         return str(file_path)
 
     def exists(self, track_id: str) -> bool:
-        # Check that a directory named <track_id> exists anywhere under base_dir
         for p in self.base_dir.rglob("*"):
             if p.is_dir() and p.name == track_id:
                 return True

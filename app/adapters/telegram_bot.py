@@ -29,15 +29,13 @@ from app.infrastructure.repos.track_metadata_repo_sql import TrackMetadataRepoSQ
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
+parser = TrackParserImpl()
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Привет! Пришли мне GPX/FIT файл — позже я его разберу."
     )
-
-
-parser = TrackParserImpl()
 
 
 async def handle_document(update, context):
@@ -61,16 +59,15 @@ async def handle_document(update, context):
                 source="telegram",
             )
         )
-        print(row)
     await update.message.reply_text(
         "✅ Сохранено: {filename} ({format})\n"
         "Дистанция: {distance} км, Длительность: {duration} c, Набор: {gain} м\n"
         "ID: {tid}".format(
             filename=row.get("filename"),
             format=row.get("format"),
-            distance=(row.get("distance_km") or 0),
-            duration=(row.get("duration_s") or 0),
-            gain=(row.get("elevation_gain_m") or 0),
+            distance=(row.get("distance_km")),
+            duration=(row.get("duration_s")),
+            gain=(row.get("elevation_gain_m")),
             tid=row.get("id"),
         )
     )

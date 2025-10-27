@@ -3,7 +3,7 @@
 import os
 from typing import Optional
 from app.domain.ports import TrackFormatDetector
-from app.domain.track import TrackFormat
+from app.domain.models.track import TrackFormat
 
 
 class SimpleFormatDetector(TrackFormatDetector):

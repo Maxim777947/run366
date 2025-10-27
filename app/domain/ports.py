@@ -8,7 +8,7 @@ Constraints:
 """
 
 from typing import Protocol, Optional
-from .track import TrackFormat, Track
+from app.domain.models.track import TrackFormat, Track
 
 
 class TrackStorage(Protocol):

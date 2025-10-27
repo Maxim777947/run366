@@ -19,7 +19,7 @@ from app.domain.ports import (
     TrackMetadataRepository,
     TrackParser,
 )
-from app.domain.track import Track
+from app.domain.models.track import Track
 
 
 class IngestTrackCommand:
