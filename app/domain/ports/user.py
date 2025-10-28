@@ -1,4 +1,5 @@
-from typing import Protocol, Optional
+from typing import Optional, Protocol
+
 from app.domain.models.users import UserEntity
 
 

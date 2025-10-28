@@ -7,8 +7,9 @@ Constraints:
 - No imports from infrastructure or frameworks.
 """
 
-from typing import Protocol, Optional
-from app.domain.models.track import TrackFormat, Track
+from typing import Optional, Protocol
+
+from app.domain.models.track import Track, TrackFormat
 
 
 class TrackStorage(Protocol):

@@ -1,5 +1,6 @@
-from app.domain.ports.track import TrackParser
 from app.domain.models.track import TrackFormat
+from app.domain.ports.track import TrackParser
+
 from .gpx_parser import parse_gpx
 
 

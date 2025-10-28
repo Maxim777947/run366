@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
-from app.domain.ports.user import UserRepository, UserEntity
+
+from app.domain.ports.user import UserEntity, UserRepository
 
 
 class UpsertTelegramUserUseCase:

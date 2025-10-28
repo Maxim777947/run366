@@ -10,16 +10,12 @@ Constraints:
 """
 
 from datetime import datetime, timezone
-from typing import Mapping, Any
+from typing import Any, Mapping
 
-from app.domain.ports.track import (
-    TrackStorage,
-    TrackIdGenerator,
-    TrackFormatDetector,
-    TrackMetadataRepository,
-    TrackParser,
-)
 from app.domain.models.track import Track
+from app.domain.ports.track import (TrackFormatDetector, TrackIdGenerator,
+                                    TrackMetadataRepository, TrackParser,
+                                    TrackStorage)
 
 
 class IngestTrackCommand:

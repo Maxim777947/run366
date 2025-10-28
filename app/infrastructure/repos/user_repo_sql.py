@@ -1,6 +1,8 @@
 from sqlmodel import Session, select
-from app.domain.ports.user import UserRepository, UserEntity
+
+from app.domain.ports.user import UserEntity, UserRepository
 from app.infrastructure.db.models.user_metadata import UserMetadata
+
 
 class UserRepoSQL(UserRepository):
     def __init__(self, session: Session):

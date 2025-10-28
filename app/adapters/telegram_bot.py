@@ -9,25 +9,21 @@ Constraints:
 """
 
 import os
+
 from dotenv import load_dotenv
 from telegram import Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    filters,
-    ContextTypes,
-)
-from app.application.track import IngestTrackUseCase, IngestTrackCommand
+from telegram.ext import (Application, CommandHandler, ContextTypes,
+                          MessageHandler, filters)
+
+from app.application.track import IngestTrackCommand, IngestTrackUseCase
 from app.application.user import UpsertTelegramUserUseCase
-from app.infrastructure.parsers.parser_impl import TrackParserImpl
 from app.infrastructure.db.postgres import get_session, init_db
-from app.infrastructure.storage_local import LocalFSStorage
-from app.infrastructure.id_gen import UUIDGen
 from app.infrastructure.format_detector import SimpleFormatDetector
+from app.infrastructure.id_gen import UUIDGen
+from app.infrastructure.parsers.parser_impl import TrackParserImpl
 from app.infrastructure.repos.track_repo_sql import TrackMetadataRepoSQL
 from app.infrastructure.repos.user_repo_sql import UserRepoSQL
-
+from app.infrastructure.storage_local import LocalFSStorage
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
