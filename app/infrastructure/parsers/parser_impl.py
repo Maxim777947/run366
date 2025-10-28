@@ -3,11 +3,12 @@
 Dispatches by TrackFormat and delegates to concrete parsers.
 """
 
-from app.domain.models.track import TrackFormat
-from app.domain.ports.track import TrackParser, TrackFeatureExtractor
-from typing import Mapping, Any
+from typing import Any, Mapping
 
-from .gpx_parser import parse_gpx, extract_track_features_from_gpx
+from app.domain.models.track import TrackFormat
+from app.domain.ports.track import TrackFeatureExtractor, TrackParser
+
+from .gpx_parser import extract_track_features_from_gpx, parse_gpx
 
 
 class TrackParserImpl(TrackParser):
@@ -15,7 +16,6 @@ class TrackParserImpl(TrackParser):
         if fmt == TrackFormat.GPX:
             return parse_gpx(blob)
         return {}
-
 
 
 class TrackFeatureExtractorImpl(TrackFeatureExtractor):

@@ -70,7 +70,6 @@ class IngestTrackUseCase:
         self.storage.save_raw(track, cmd.blob)
         meta = self.parser.parse(format, cmd.blob) or {}
 
-
         row = {
             "id": track.id,
             "user_id": track.user_id,
@@ -84,7 +83,7 @@ class IngestTrackUseCase:
         }
 
         self.meta_repo.save(row)
-        
+
         feats = dict(self.feature_extractor.extract(format, cmd.blob))
         feats.update({"id": track.id, "user_id": cmd.user_id})
         self.features_repo.upsert(feats)
