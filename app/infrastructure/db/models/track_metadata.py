@@ -1,13 +1,12 @@
-# Здесь храним ORM модели
-# Здесь нельзя импортировать доменные сущности (чтобы не было циклов «домен ↔ инфраструктура»).
-
 from sqlmodel import SQLModel, Field
 from datetime import datetime
 
 
 class TrackMetadata(SQLModel, table=True):
+    """Модель трека"""
+
     id: str = Field(primary_key=True)
-    user_id: int
+    user_id: int = Field(index=True, foreign_key="users.id")
     filename: str
     format: str
     source: str = "telegram"
@@ -15,3 +14,5 @@ class TrackMetadata(SQLModel, table=True):
     duration_s: int | None = None
     elevation_gain_m: float | None = None
     created_at: datetime
+
+    __tablename__ = "tracks"

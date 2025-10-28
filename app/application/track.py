@@ -12,7 +12,7 @@ Constraints:
 from datetime import datetime, timezone
 from typing import Mapping, Any
 
-from app.domain.ports import (
+from app.domain.ports.track import (
     TrackStorage,
     TrackIdGenerator,
     TrackFormatDetector,
@@ -61,13 +61,9 @@ class IngestTrackUseCase:
             created_at=datetime.now(timezone.utc),
         )
 
-        # 1) сохраняем сырой файл
         self.storage.save_raw(track, cmd.blob)
-
-        # 2) парсим (инфраструктурой)
         meta = self.parser.parse(fmt, cmd.blob) or {}
 
-        # 3) готовим DTO для БД (без ORM)
         row = {
             "id": track.id,
             "user_id": track.user_id,
@@ -82,5 +78,4 @@ class IngestTrackUseCase:
 
         self.meta_repo.save(row)
 
-        # 5) возвращаем DTO (или track.id)
         return row

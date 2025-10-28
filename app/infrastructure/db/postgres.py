@@ -9,13 +9,15 @@ from app.config import settings
 from contextlib import contextmanager
 
 
+from app.infrastructure.db.models.track_metadata import TrackMetadata
+from app.infrastructure.db.models.user_metadata import UserMetadata
+
+
 engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 
 
 def init_db() -> None:
-    from app.infrastructure.db.models import track_metadata, users
-
-    SQLModel.metadata.create_all(engine)
+    pass
 
 
 @contextmanager

@@ -18,13 +18,15 @@ from telegram.ext import (
     filters,
     ContextTypes,
 )
+from app.application.track import IngestTrackUseCase, IngestTrackCommand
+from app.application.user import UpsertTelegramUserUseCase
 from app.infrastructure.parsers.parser_impl import TrackParserImpl
 from app.infrastructure.db.postgres import get_session, init_db
-from app.application.usecases_ingest import IngestTrackUseCase, IngestTrackCommand
 from app.infrastructure.storage_local import LocalFSStorage
 from app.infrastructure.id_gen import UUIDGen
 from app.infrastructure.format_detector import SimpleFormatDetector
-from app.infrastructure.repos.track_metadata_repo_sql import TrackMetadataRepoSQL
+from app.infrastructure.repos.track_repo_sql import TrackMetadataRepoSQL
+from app.infrastructure.repos.user_repo_sql import UserRepoSQL
 
 
 load_dotenv()
@@ -42,8 +44,11 @@ async def handle_document(update, context):
     doc = update.message.document
     file = await context.bot.get_file(doc.file_id)
     blob = await file.download_as_bytearray()
+    user = update.effective_user
 
     with get_session() as s:
+        user_id = UpsertTelegramUserUseCase(UserRepoSQL(s)).execute(user)
+
         usecase = IngestTrackUseCase(
             storage=LocalFSStorage("./data/uploads"),
             id_gen=UUIDGen(),
@@ -53,7 +58,7 @@ async def handle_document(update, context):
         )
         row = usecase.execute(
             IngestTrackCommand(
-                user_id=update.effective_user.id,
+                user_id=user_id,
                 filename=doc.file_name or "unknown",
                 blob=bytes(blob),
                 source="telegram",

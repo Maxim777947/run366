@@ -10,7 +10,7 @@ Constraints:
 """
 
 from sqlmodel import Session
-from app.infrastructure.db.models.track_metadata import TrackMetadata as TM
+from app.infrastructure.db.models.track_metadata import TrackMetadata
 
 
 class TrackMetadataRepoSQL:
@@ -20,6 +20,6 @@ class TrackMetadataRepoSQL:
         self.session = session
 
     def save(self, meta: dict) -> None:
-        row = TM(**meta)
+        row = TrackMetadata(**meta)
         self.session.add(row)
         self.session.commit()

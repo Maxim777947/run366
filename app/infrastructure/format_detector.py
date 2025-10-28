@@ -2,7 +2,7 @@
 
 import os
 from typing import Optional
-from app.domain.ports import TrackFormatDetector
+from app.domain.ports.track import TrackFormatDetector
 from app.domain.models.track import TrackFormat
 
 
