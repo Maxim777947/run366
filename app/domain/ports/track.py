@@ -7,7 +7,7 @@ Constraints:
 - No imports from infrastructure or frameworks.
 """
 
-from typing import Optional, Protocol
+from typing import Any, Mapping, Optional, Protocol
 
 from app.domain.models.track import Track, TrackFormat
 
@@ -30,4 +30,12 @@ class TrackMetadataRepository(Protocol):
 
 
 class TrackParser(Protocol):
-    def parse(self, fmt: TrackFormat, blob: bytes) -> dict: ...
+    def parse(self, format: TrackFormat, blob: bytes) -> dict: ...
+
+
+class TrackFeatureExtractor(Protocol):
+    def extract(self, format: TrackFormat, blob: bytes) -> Mapping[str, Any]: ...
+
+
+class TrackFeaturesRepository(Protocol):
+    def upsert(self, features: Mapping[str, Any]) -> None: ...

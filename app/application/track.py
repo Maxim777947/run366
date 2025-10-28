@@ -13,9 +13,15 @@ from datetime import datetime, timezone
 from typing import Any, Mapping
 
 from app.domain.models.track import Track
-from app.domain.ports.track import (TrackFormatDetector, TrackIdGenerator,
-                                    TrackMetadataRepository, TrackParser,
-                                    TrackStorage)
+from app.domain.ports.track import (
+    TrackFeatureExtractor,
+    TrackFeaturesRepository,
+    TrackFormatDetector,
+    TrackIdGenerator,
+    TrackMetadataRepository,
+    TrackParser,
+    TrackStorage,
+)
 
 
 class IngestTrackCommand:
@@ -36,29 +42,34 @@ class IngestTrackUseCase:
         detector: TrackFormatDetector,
         parser: TrackParser,
         meta_repo: TrackMetadataRepository,
+        feature_extractor: TrackFeatureExtractor | None = None,
+        features_repo: TrackFeaturesRepository | None = None,
     ):
         self.storage = storage
         self.id_gen = id_gen
         self.detector = detector
         self.parser = parser
         self.meta_repo = meta_repo
+        self.feature_extractor = feature_extractor
+        self.features_repo = features_repo
 
     def execute(self, cmd: IngestTrackCommand) -> Mapping[str, Any]:
-        fmt = self.detector.detect(cmd.filename, cmd.blob[:512])
-        if not fmt:
+        format = self.detector.detect(cmd.filename, cmd.blob[:512])
+        if not format:
             raise ValueError("Ожидаю GPX/FIT/TCX")
 
         track = Track(
             id=self.id_gen.new_id(),
             user_id=cmd.user_id,
             filename=cmd.filename,
-            format=fmt,
+            format=format,
             source=cmd.source,
             created_at=datetime.now(timezone.utc),
         )
 
         self.storage.save_raw(track, cmd.blob)
-        meta = self.parser.parse(fmt, cmd.blob) or {}
+        meta = self.parser.parse(format, cmd.blob) or {}
+
 
         row = {
             "id": track.id,
@@ -73,5 +84,9 @@ class IngestTrackUseCase:
         }
 
         self.meta_repo.save(row)
+        
+        feats = dict(self.feature_extractor.extract(format, cmd.blob))
+        feats.update({"id": track.id, "user_id": cmd.user_id})
+        self.features_repo.upsert(feats)
 
         return row

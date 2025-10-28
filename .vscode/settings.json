@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
+        "Парсер",
         "domian",
         "dotenv",
+        "gpxpy",
         "qdrant",
         "usecase",
         "usecases"

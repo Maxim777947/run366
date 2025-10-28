@@ -11,7 +11,10 @@ Constraints:
 
 from sqlmodel import Session
 
-from app.infrastructure.db.models.track_metadata import TrackMetadata
+from app.infrastructure.db.models.track_metadata import (
+    TrackFeaturesMetadata,
+    TrackMetadata,
+)
 
 
 class TrackMetadataRepoSQL:
@@ -23,4 +26,19 @@ class TrackMetadataRepoSQL:
     def save(self, meta: dict) -> None:
         row = TrackMetadata(**meta)
         self.session.add(row)
+        self.session.commit()
+
+
+class TrackFeaturesRepoSQL:
+    def __init__(self, session: Session):
+        self.session = session
+
+    def upsert(self, features: dict) -> None:
+        row = self.session.get(TrackFeaturesMetadata, features["id"])
+        if row is None:
+            row = TrackFeaturesMetadata(**features)
+            self.session.add(row)
+        else:
+            for k, v in features.items():
+                setattr(row, k, v)
         self.session.commit()

@@ -12,16 +12,21 @@ import os
 
 from dotenv import load_dotenv
 from telegram import Update
-from telegram.ext import (Application, CommandHandler, ContextTypes,
-                          MessageHandler, filters)
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
 from app.application.track import IngestTrackCommand, IngestTrackUseCase
 from app.application.user import UpsertTelegramUserUseCase
 from app.infrastructure.db.postgres import get_session, init_db
 from app.infrastructure.format_detector import SimpleFormatDetector
 from app.infrastructure.id_gen import UUIDGen
-from app.infrastructure.parsers.parser_impl import TrackParserImpl
-from app.infrastructure.repos.track_repo_sql import TrackMetadataRepoSQL
+from app.infrastructure.parsers.parser_impl import TrackParserImpl, TrackFeatureExtractorImpl
+from app.infrastructure.repos.track_repo_sql import TrackMetadataRepoSQL, TrackFeaturesRepoSQL
 from app.infrastructure.repos.user_repo_sql import UserRepoSQL
 from app.infrastructure.storage_local import LocalFSStorage
 
@@ -51,6 +56,8 @@ async def handle_document(update, context):
             detector=SimpleFormatDetector(),
             parser=parser,
             meta_repo=TrackMetadataRepoSQL(s),
+            feature_extractor=TrackFeatureExtractorImpl(),
+            features_repo=TrackFeaturesRepoSQL(s), 
         )
         row = usecase.execute(
             IngestTrackCommand(
