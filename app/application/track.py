@@ -1,12 +1,5 @@
-"""Application layer use case: orchestrates steps of business logic.
-
-Responsibilities:
-- Coordinate domain and ports to perform a use case.
-- No knowledge of technical details of persistence, network, or frameworks.
-
-Constraints:
-- Do not import or depend on ORM/SQL/HTTP/Telegram SDKs or any frameworks.
-- Depend only on domain entities and ports (protocols) defined in app.domain.
+"""
+Слой аппликации, реализация сценариев
 """
 
 from datetime import datetime, timezone
@@ -35,6 +28,8 @@ class IngestTrackCommand:
 
 
 class IngestTrackUseCase:
+    """Загрузка файлов GPX и подсчёт основных метрик"""
+
     def __init__(
         self,
         storage: TrackStorage,
