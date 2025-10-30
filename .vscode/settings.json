@@ -8,12 +8,17 @@
         "gpxpy",
         "qdrant",
         "usecase",
-        "usecases"
+        "usecases",
+        "Vectorizer"
     ],
     "cSpell.language": "en,ru",
     "commentTranslate.targetLanguage": "ru",
     "commentTranslate.sourceLanguage": "auto",
     "commentTranslate.engine": "google",
     "ruff.lint.args": ["--line-length", "120"],
-    "ruff.format.args": ["--line-length", "120"]
+    "ruff.format.args": [
+        "--line-length",
+        "120"
+    ],
+    "commentTranslate.hover.enabled": true
 }

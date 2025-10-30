@@ -14,15 +14,19 @@ from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
-from app.application.track import IngestTrackCommand, IngestTrackUseCase
+from app.application.track import ComputeAndIndexTrackFeaturesUseCase, IngestTrackCommand, IngestTrackUseCase
 from app.application.user import UpsertTelegramUserUseCase
+from app.domain.models.track import ComputeAndIndexTrackFeaturesCommand, TrackFormat
 from app.infrastructure.db.postgres import get_session, init_db
+from app.infrastructure.db.qdrant import init_qdrant
 from app.infrastructure.format_detector import SimpleFormatDetector
 from app.infrastructure.id_gen import UUIDGen
 from app.infrastructure.parsers.parser_impl import TrackFeatureExtractorImpl, TrackParserImpl
+from app.infrastructure.repos.track_repo_qdrant import TrackVectorIndexQdrant
 from app.infrastructure.repos.track_repo_sql import TrackFeaturesRepoSQL, TrackMetadataRepoSQL
 from app.infrastructure.repos.user_repo_sql import UserRepoSQL
 from app.infrastructure.storage_local import LocalFSStorage
+from app.infrastructure.vectorize.track import HandcraftedTrackVectorizer
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -59,6 +63,19 @@ async def handle_document(update, context):
                 source="telegram",
             )
         )
+        features_use_case = ComputeAndIndexTrackFeaturesUseCase(
+            feature_extractor=TrackFeatureExtractorImpl(),
+            features_repository=TrackFeaturesRepoSQL(s),
+            vector_index=TrackVectorIndexQdrant(),
+            track_vectorizer=HandcraftedTrackVectorizer(),
+        )
+        features_use_case.execute(
+            ComputeAndIndexTrackFeaturesCommand(
+                track_id=row["id"],
+                track_format=TrackFormat(row["format"]),
+                file_bytes=bytes(blob),
+            )
+        )
     await update.message.reply_text(
         "✅ Сохранено: {filename} ({format})\n"
         "Дистанция: {distance} км, Длительность: {duration} c, Набор: {gain} м\n"
@@ -75,6 +92,7 @@ async def handle_document(update, context):
 
 def main():
     init_db()
+    init_qdrant()
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.COMMAND, start))

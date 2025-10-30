@@ -7,7 +7,7 @@
 - Запрет на импорт из инфраструктуры или фреймворков.
 """
 
-from typing import Any, Mapping, Optional, Protocol
+from typing import Any, Dict, List, Mapping, Optional, Protocol
 
 from app.domain.models.track import Track, TrackFormat
 
@@ -39,3 +39,18 @@ class TrackFeatureExtractor(Protocol):
 
 class TrackFeaturesRepository(Protocol):
     def upsert(self, features: Mapping[str, Any]) -> None: ...
+
+
+class TrackVectorIndex(Protocol):
+    def ensure_collection(self, vector_size: int) -> None: ...
+
+    def upsert(self, track_id: str, user_id: int, vector: List[float], payload: Dict[str, Any]) -> None: ...
+
+    def search(
+        self, query_vector: List[float], top_k: int = 10, user_id_filter: Optional[int] = None
+    ) -> List[Dict[str, Any]]: ...
+
+
+class TrackVectorizer(Protocol):
+    def vector_size(self) -> int: ...
+    def vectorize(self, features: Mapping[str, Any]) -> List[float]: ...

@@ -10,9 +10,9 @@ Constraints:
 """
 
 from datetime import datetime, timezone
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional
 
-from app.domain.models.track import Track
+from app.domain.models.track import ComputeAndIndexTrackFeaturesCommand, Track
 from app.domain.ports.track import (
     TrackFeatureExtractor,
     TrackFeaturesRepository,
@@ -21,6 +21,8 @@ from app.domain.ports.track import (
     TrackMetadataRepository,
     TrackParser,
     TrackStorage,
+    TrackVectorIndex,
+    TrackVectorizer,
 )
 
 
@@ -87,3 +89,51 @@ class IngestTrackUseCase:
         self.features_repo.upsert(feats)
 
         return row
+
+
+class ComputeAndIndexTrackFeaturesUseCase:
+    """
+    Сценарий application-слоя:
+    1) извлечь признаки из бинарного файла;
+    2) сохранить признаки в БД (идемпотентно по track_id);
+    3) по желанию — построить вектор и проиндексировать в Qdrant.
+    """
+
+    def __init__(
+        self,
+        feature_extractor: TrackFeatureExtractor,
+        features_repository: TrackFeaturesRepository,
+        vector_index: Optional[TrackVectorIndex] = None,
+        track_vectorizer: Optional[TrackVectorizer] = None,
+    ) -> None:
+        self.feature_extractor = feature_extractor
+        self.features_repository = features_repository
+        self.vector_index = vector_index
+        self.track_vectorizer = track_vectorizer
+
+    def execute(self, command: ComputeAndIndexTrackFeaturesCommand) -> Mapping[str, Any]:
+        extracted_track_features: Mapping[str, Any] = self.feature_extractor.extract(
+            command.track_format, command.file_bytes
+        )
+        if not extracted_track_features:
+            return {}
+
+        features_to_save = dict(extracted_track_features)
+        features_to_save.update({"id": command.track_id})
+        self.features_repository.upsert(features_to_save)
+
+        if self.vector_index and self.track_vectorizer:
+            features_vector = self.track_vectorizer.vectorize(features_to_save)
+            self.vector_index.upsert(
+                track_id=command.track_id,
+                vector=features_vector,
+                payload={
+                    "format": command.track_format.value,
+                    "start_time": str(features_to_save.get("start_datetime_utc")),
+                    "route": features_to_save.get("route_curvature_category"),
+                    "terrain": features_to_save.get("terrain_category"),
+                    "area": features_to_save.get("start_area_identifier_approx"),
+                },
+            )
+
+        return features_to_save

@@ -11,16 +11,14 @@ def init_qdrant():
     except Exception:
         client.recreate_collection(
             collection_name=settings.QDRANT_COLLECTION,
-            vectors_config={
-                "dense": models.VectorParams(
-                    size=settings.EMBEDDING_DIM,
-                    distance=models.Distance.COSINE,
-                    hnsw_config=models.HnswConfigDiff(
-                        m=16,
-                        ef_construct=100,
-                        full_scan_threshold=10_000,
-                    ),
-                )
-            },
+            vectors_config=models.VectorParams(
+                size=settings.EMBEDDING_DIM,
+                distance=models.Distance.COSINE,
+                hnsw_config=models.HnswConfigDiff(
+                    m=16,
+                    ef_construct=100,
+                    full_scan_threshold=10_000,
+                ),
+            ),
             optimizers_config=models.OptimizersConfigDiff(default_segment_number=2),
         )

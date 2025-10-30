@@ -18,7 +18,7 @@ class TrackFormat(StrEnum):
 
 @dataclass(frozen=True)
 class Track:
-    """Базовая доменная сущность трека (не зависит от БД и инфраструктуры)."""
+    """Базовая доменная сущность трека."""
 
     id: str
     user_id: int
@@ -30,6 +30,8 @@ class Track:
 
 @dataclass(frozen=True)
 class TrackFeatures:
+    """Базовая доменная сущность для основных метрик трека"""
+
     id: str
     # Время (UTC)
     start_datetime_utc: Optional[datetime]
@@ -66,3 +68,14 @@ class TrackFeatures:
     features_version: int
     computed_at_utc: datetime
     source_format: Optional[str]
+
+
+@dataclass(frozen=True)
+class ComputeAndIndexTrackFeaturesCommand:
+    """
+    Входные данные сценария: идентификаторы, формат и бинарное содержимое трека.
+    """
+
+    track_id: str
+    track_format: TrackFormat
+    file_bytes: bytes
