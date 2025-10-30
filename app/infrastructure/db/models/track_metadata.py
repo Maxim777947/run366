@@ -28,64 +28,31 @@ class TrackFeaturesMetadata(SQLModel, table=True):
 
     id: str = Field(primary_key=True, foreign_key="tracks.id")
     track: "TrackMetadata" = Relationship(back_populates="features")
-
-    # Время старта/финиша в UTC
-    start_datetime_utc: datetime | None = None  # дата/время старта (UTC)
-    end_datetime_utc: datetime | None = None  # дата/время финиша (UTC)
-
-    # Удобные признаки времени
-    start_hour_of_day_utc: int | None = Field(
-        default=None, index=True
-    )  # час старта 0..23 (UTC)
-    day_of_week_index: int | None = Field(
-        default=None, index=True
-    )  # день недели 0=Пн .. 6=Вс
-
-    # Геопозиция старта/финиша
-    start_latitude_deg: float | None = None  # широта старта, градусы
-    start_longitude_deg: float | None = None  # долгота старта, градусы
-    end_latitude_deg: float | None = None  # широта финиша, градусы
-    end_longitude_deg: float | None = None  # долгота финиша, градусы
-
-    # Приближённый идентификатор зоны старта (округление координат)
+    start_datetime_utc: datetime | None = None
+    end_datetime_utc: datetime | None = None
+    start_hour_of_day_utc: int | None = Field(default=None, index=True)
+    day_of_week_index: int | None = Field(default=None, index=True)
+    start_latitude_deg: float | None = None
+    start_longitude_deg: float | None = None
+    end_latitude_deg: float | None = None
+    end_longitude_deg: float | None = None
     start_area_identifier_approx: str | None = Field(default=None, index=True)
+    total_distance_kilometers: float | None = None
+    straight_line_distance_kilometers: float | None = None
+    path_sinuosity_ratio: float | None = None
+    route_curvature_category: str | None = Field(default=None, index=True)
+    total_elevation_gain_meters: float | None = None
+    total_elevation_loss_meters: float | None = None
+    elevation_gain_per_kilometer: float | None = None
+    terrain_category: str | None = Field(default=None, index=True)
+    total_elapsed_duration_seconds: int | None = None
+    total_moving_duration_seconds: int | None = None
+    total_stopped_duration_seconds: int | None = None
 
-    # Дистанция
-    total_distance_kilometers: float | None = None  # суммарная дистанция, км
-    straight_line_distance_kilometers: float | None = (
-        None  # расстояние по прямой старт→финиш, км
-    )
-
-    # Извилистость траектории
-    path_sinuosity_ratio: float | None = None  # отношение дистанции к прямой
-    route_curvature_category: str | None = Field(
-        default=None, index=True
-    )  # straight/mixed/curvy
-
-    # Рельеф
-    total_elevation_gain_meters: float | None = None  # суммарный набор высоты, м
-    total_elevation_loss_meters: float | None = None  # суммарный сброс высоты, м
-    elevation_gain_per_kilometer: float | None = None  # набор на каждый км, м/км
-    terrain_category: str | None = Field(default=None, index=True)  # flat/rolling/hilly
-
-    # Временные метрики
-    total_elapsed_duration_seconds: int | None = (
-        None  # полная длительность (старт→финиш), сек
-    )
-    total_moving_duration_seconds: int | None = None  # время в движении, сек
-    total_stopped_duration_seconds: int | None = None  # время остановок, сек
-
-    # Скорости
-    average_speed_kilometers_per_hour: float | None = (
-        None  # средняя скорость (движение), км/ч
-    )
-    maximum_speed_kilometers_per_hour: float | None = (
-        None  # максимальная скорость, км/ч
-    )
+    average_speed_kilometers_per_hour: float | None = None
+    maximum_speed_kilometers_per_hour: float | None = None
 
     # Служебные поля
-    features_version: int = 1  # версия расчёта фич
-    computed_at_utc: datetime = Field(
-        default_factory=datetime.utcnow
-    )  # когда посчитали фичи (UTC)
-    source_format: str | None = "gpx"  # исходный формат файла
+    features_version: int = 1
+    computed_at_utc: datetime = Field(default_factory=datetime.utcnow)
+    source_format: str | None = "gpx"

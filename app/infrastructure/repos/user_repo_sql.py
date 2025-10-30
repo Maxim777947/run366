@@ -11,10 +11,7 @@ class UserRepoSQL(UserRepository):
     def upsert(self, user: UserEntity) -> int:
         """Создать или изменить данные пользователя"""
 
-        row = self.session.exec(
-            select(UserMetadata).where(UserMetadata.tg_id == user.tg_id)
-        ).first()
-        print(user)
+        row = self.session.exec(select(UserMetadata).where(UserMetadata.tg_id == user.tg_id)).first()
         if row is None:
             row = UserMetadata(
                 tg_id=user.tg_id,

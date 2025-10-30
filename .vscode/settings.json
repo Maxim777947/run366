@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "Парсер",
+        "dlat",
+        "dlon",
         "domian",
         "dotenv",
         "gpxpy",
@@ -8,5 +10,10 @@
         "usecase",
         "usecases"
     ],
-        "cSpell.language": "en,ru",
+    "cSpell.language": "en,ru",
+    "commentTranslate.targetLanguage": "ru",
+    "commentTranslate.sourceLanguage": "auto",
+    "commentTranslate.engine": "google",
+    "ruff.lint.args": ["--line-length", "120"],
+    "ruff.format.args": ["--line-length", "120"]
 }

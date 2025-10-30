@@ -1,10 +1,10 @@
-"""Domain ports (interfaces) defining boundaries.
+"""Порты (интерфейсы) домена, определяющие границы.
 
-Responsibilities:
-- Declare stable interfaces that the application depends upon.
+Обязанности:
+- Объявление стабильных интерфейсов, от которых зависит приложение.
 
-Constraints:
-- No imports from infrastructure or frameworks.
+Ограничения:
+- Запрет на импорт из инфраструктуры или фреймворков.
 """
 
 from typing import Any, Mapping, Optional, Protocol

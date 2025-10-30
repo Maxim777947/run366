@@ -1,3 +1,4 @@
+from collections import deque
 from datetime import datetime, timezone
 from math import atan2, cos, radians, sin, sqrt
 
@@ -10,11 +11,8 @@ def parse_gpx(blob: bytes) -> dict:
     total_m = 0.0
     total_s = 0
     gain = 0.0
-    print("g.tracks", g.tracks)
     for tr in g.tracks:
-        print(1, tr)
         for seg in tr.segments:
-            print(2, seg)
             total_m += seg.length_2d() or 0.0
             if seg.points:
                 st, en = seg.points[0].time, seg.points[-1].time
@@ -39,18 +37,51 @@ def parse_gpx(blob: bytes) -> dict:
     }
 
 
-def _haversine_distance_meters(
-    lat1: float, lon1: float, lat2: float, lon2: float
-) -> float:
-    # Расстояние по сфере (м) между двумя координатами (формула хаверсина)
+def _haversine_distance_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     R = 6371000.0
     dlat = radians(lat2 - lat1)
     dlon = radians(lon2 - lon1)
-    a = (
-        sin(dlat / 2) ** 2
-        + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
-    )
+    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
     return 2 * R * atan2(sqrt(a), sqrt(1 - a))
+
+
+def _haversine_m(lat1, lon1, lat2, lon2):
+    R = 6371000.0
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+    return 2 * R * atan2(sqrt(a), sqrt(1 - a))
+
+
+def _elevation_gain_loss_gpx(g, min_delta_m=1.0, smooth_window=3, min_horiz_m=3.0):
+    # min_delta_m: игнорировать перепады меньше порога (срезаем шум)
+    # smooth_window: скользящее среднее высоты (сглаживание)
+    # min_horiz_m: не считать соседние точки слишком близко (GPS-дребезг)
+    gain = 0.0
+    loss = 0.0
+    for tr in g.tracks:
+        for seg in tr.segments:
+            prev_lat = prev_lon = None
+            prev_elev_sm = None
+            buf = deque(maxlen=smooth_window)
+            for p in seg.points:
+                if p.elevation is None or p.latitude is None or p.longitude is None:
+                    continue
+                # пропускаем слишком близкие по горизонтали точки
+                if prev_lat is not None:
+                    if _haversine_m(prev_lat, prev_lon, p.latitude, p.longitude) < min_horiz_m:
+                        buf.append(p.elevation)
+                        continue
+                buf.append(p.elevation)
+                elev_sm = sum(buf) / len(buf)
+                if prev_elev_sm is not None:
+                    delta = elev_sm - prev_elev_sm
+                    if delta >= min_delta_m:
+                        gain += delta
+                    elif delta <= -min_delta_m:
+                        loss += -delta
+                prev_lat, prev_lon, prev_elev_sm = p.latitude, p.longitude, elev_sm
+    return round(gain, 1), round(loss, 1)
 
 
 def extract_track_features_from_gpx(blob: bytes) -> dict:
@@ -96,9 +127,7 @@ def extract_track_features_from_gpx(blob: bytes) -> dict:
     straight_line_distance_kilometers = round(straight_line_distance_meters / 1000.0, 3)
 
     # Время старта/финиша (UTC)
-    start_datetime_utc = (
-        getattr(time_bounds, "start_time", None) if time_bounds else None
-    )
+    start_datetime_utc = getattr(time_bounds, "start_time", None) if time_bounds else None
     end_datetime_utc = getattr(time_bounds, "end_time", None) if time_bounds else None
 
     # Производные метрики
@@ -109,17 +138,10 @@ def extract_track_features_from_gpx(blob: bytes) -> dict:
         else None
     )
 
-    total_elevation_gain_meters = (
-        uphill_downhill[0] if uphill_downhill else 0.0
-    ) or 0.0
-    total_elevation_loss_meters = (
-        uphill_downhill[1] if uphill_downhill else 0.0
-    ) or 0.0
+    total_elevation_gain_meters, total_elevation_loss_meters = _elevation_gain_loss_gpx(g)
 
     elevation_gain_per_kilometer = (
-        total_elevation_gain_meters / max(total_distance_kilometers, eps)
-        if total_distance_kilometers
-        else None
+        total_elevation_gain_meters / max(total_distance_kilometers, eps) if total_distance_kilometers else None
     )
 
     total_elapsed_duration_seconds = (
@@ -128,21 +150,15 @@ def extract_track_features_from_gpx(blob: bytes) -> dict:
         else None
     )
 
-    total_moving_duration_seconds = (
-        int(moving_data.moving_time) if moving_data else None
-    )
-    total_stopped_duration_seconds = (
-        int(moving_data.stopped_time) if moving_data else None
-    )
+    total_moving_duration_seconds = int(moving_data.moving_time) if moving_data else None
+    total_stopped_duration_seconds = int(moving_data.stopped_time) if moving_data else None
     average_speed_kilometers_per_hour = (
         round((moving_data.moving_distance / moving_data.moving_time) * 3.6, 2)
         if (moving_data and moving_data.moving_time)
         else None
     )
     maximum_speed_kilometers_per_hour = (
-        round(moving_data.max_speed * 3.6, 2)
-        if (moving_data and moving_data.max_speed)
-        else None
+        round(moving_data.max_speed * 3.6, 2) if (moving_data and moving_data.max_speed) else None
     )
 
     # Категория извилистости маршрута
@@ -171,52 +187,37 @@ def extract_track_features_from_gpx(blob: bytes) -> dict:
             return None
         return f"{round(lat, precision)}:{round(lon, precision)}"
 
-    start_area_identifier_approx = _approx_start_area_id(
-        start_latitude_deg, start_longitude_deg, precision=3
-    )
+    start_area_identifier_approx = _approx_start_area_id(start_latitude_deg, start_longitude_deg, precision=3)
 
-    # Удобные поля времени
-    start_hour_of_day_utc = (
-        start_datetime_utc.hour if start_datetime_utc else None
-    )  # 0..23 (UTC)
-    day_of_week_index = (
-        start_datetime_utc.weekday() if start_datetime_utc else None
-    )  # 0=Пн .. 6=Вс
+    start_hour_of_day_utc = start_datetime_utc.hour if start_datetime_utc else None
+    day_of_week_index = start_datetime_utc.weekday() if start_datetime_utc else None
 
     return {
-        "start_datetime_utc": start_datetime_utc,  # дата/время старта (UTC)
-        "end_datetime_utc": end_datetime_utc,  # дата/время финиша (UTC)
-        "start_hour_of_day_utc": start_hour_of_day_utc,  # час старта 0..23 (UTC)
-        "day_of_week_index": day_of_week_index,  # день недели 0=Пн .. 6=Вс
-        "start_latitude_deg": start_latitude_deg,  # широта старта, градусы
-        "start_longitude_deg": start_longitude_deg,  # долгота старта, градусы
-        "end_latitude_deg": end_latitude_deg,  # широта финиша, градусы
-        "end_longitude_deg": end_longitude_deg,  # долгота финиша, градусы
-        "start_area_identifier_approx": start_area_identifier_approx,  # приблизительная зона старта
-        "total_distance_kilometers": total_distance_kilometers,  # суммарная дистанция, км
-        "straight_line_distance_kilometers": straight_line_distance_kilometers,  # прямая старт→финиш, км
-        "path_sinuosity_ratio": round(path_sinuosity_ratio, 3)
-        if path_sinuosity_ratio is not None
-        else None,
-        "route_curvature_category": route_curvature_category,  # straight/mixed/curvy
-        "total_elevation_gain_meters": round(
-            total_elevation_gain_meters, 1
-        ),  # набор высоты, м
-        "total_elevation_loss_meters": round(
-            total_elevation_loss_meters, 1
-        ),  # сброс высоты, м
+        "start_datetime_utc": start_datetime_utc,
+        "end_datetime_utc": end_datetime_utc,
+        "start_hour_of_day_utc": start_hour_of_day_utc,
+        "day_of_week_index": day_of_week_index,
+        "start_latitude_deg": start_latitude_deg,
+        "start_longitude_deg": start_longitude_deg,
+        "end_latitude_deg": end_latitude_deg,
+        "end_longitude_deg": end_longitude_deg,
+        "start_area_identifier_approx": start_area_identifier_approx,
+        "total_distance_kilometers": total_distance_kilometers,
+        "straight_line_distance_kilometers": straight_line_distance_kilometers,
+        "path_sinuosity_ratio": round(path_sinuosity_ratio, 3) if path_sinuosity_ratio is not None else None,
+        "route_curvature_category": route_curvature_category,
+        "total_elevation_gain_meters": round(total_elevation_gain_meters, 1),
+        "total_elevation_loss_meters": round(total_elevation_loss_meters, 1),
         "elevation_gain_per_kilometer": (
-            round(elevation_gain_per_kilometer, 1)
-            if elevation_gain_per_kilometer is not None
-            else None
-        ),  # набор на км, м/км
-        "terrain_category": terrain_category,  # flat/rolling/hilly
-        "total_elapsed_duration_seconds": total_elapsed_duration_seconds,  # полная длительность (старт→финиш), сек
-        "total_moving_duration_seconds": total_moving_duration_seconds,  # время в движении, сек
-        "total_stopped_duration_seconds": total_stopped_duration_seconds,  # время остановок, сек
-        "average_speed_kilometers_per_hour": average_speed_kilometers_per_hour,  # средняя скорость (движение), км/ч
-        "maximum_speed_kilometers_per_hour": maximum_speed_kilometers_per_hour,  # максимальная скорость, км/ч
-        "features_version": 1,  # версия расчёта фич
-        "computed_at_utc": datetime.now(timezone.utc),  # когда посчитали (UTC)
-        "source_format": "gpx",  # исходный формат
+            round(elevation_gain_per_kilometer, 1) if elevation_gain_per_kilometer is not None else None
+        ),
+        "terrain_category": terrain_category,
+        "total_elapsed_duration_seconds": total_elapsed_duration_seconds,
+        "total_moving_duration_seconds": total_moving_duration_seconds,
+        "total_stopped_duration_seconds": total_stopped_duration_seconds,
+        "average_speed_kilometers_per_hour": average_speed_kilometers_per_hour,
+        "maximum_speed_kilometers_per_hour": maximum_speed_kilometers_per_hour,
+        "features_version": 1,
+        "computed_at_utc": datetime.now(timezone.utc),
+        "source_format": "gpx",
     }

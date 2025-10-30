@@ -25,9 +25,7 @@ from app.domain.ports.track import (
 
 
 class IngestTrackCommand:
-    def __init__(
-        self, user_id: int, filename: str, blob: bytes, source: str = "telegram"
-    ):
+    def __init__(self, user_id: int, filename: str, blob: bytes, source: str = "telegram"):
         self.user_id = user_id
         self.filename = filename
         self.blob = blob
@@ -42,8 +40,8 @@ class IngestTrackUseCase:
         detector: TrackFormatDetector,
         parser: TrackParser,
         meta_repo: TrackMetadataRepository,
-        feature_extractor: TrackFeatureExtractor | None = None,
-        features_repo: TrackFeaturesRepository | None = None,
+        feature_extractor: TrackFeatureExtractor,
+        features_repo: TrackFeaturesRepository,
     ):
         self.storage = storage
         self.id_gen = id_gen

@@ -11,10 +11,7 @@ Constraints:
 
 from sqlmodel import Session
 
-from app.infrastructure.db.models.track_metadata import (
-    TrackFeaturesMetadata,
-    TrackMetadata,
-)
+from app.infrastructure.db.models.track_metadata import TrackFeaturesMetadata, TrackMetadata
 
 
 class TrackMetadataRepoSQL:
