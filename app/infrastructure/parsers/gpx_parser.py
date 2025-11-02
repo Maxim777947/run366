@@ -161,15 +161,14 @@ def extract_track_features_from_gpx(blob: bytes) -> dict:
         round(moving_data.max_speed * 3.6, 2) if (moving_data and moving_data.max_speed) else None
     )
 
-    # Категория извилистости маршрута
     if path_sinuosity_ratio is None:
         route_curvature_category = None
     elif path_sinuosity_ratio < 1.05:
-        route_curvature_category = "straight"  # преимущественно прямая
+        route_curvature_category = "преимущественно прямой"
     elif path_sinuosity_ratio > 1.15:
-        route_curvature_category = "curvy"  # извилистая
+        route_curvature_category = "извилистый"
     else:
-        route_curvature_category = "mixed"  # смешанная
+        route_curvature_category = "смешанный"
 
     # Категория рельефа по набору/км
     if elevation_gain_per_kilometer is None:

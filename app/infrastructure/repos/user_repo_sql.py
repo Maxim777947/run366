@@ -40,3 +40,9 @@ class UserRepoSQL(UserRepository):
         if not row:
             return None
         return UserEntity(**row.model_dump())
+
+    def get_id_by_tg_id(self, tg_id: int) -> [int]:
+        """Возвращает database user_id по Telegram ID."""
+
+        row = self.session.exec(select(UserMetadata).where(UserMetadata.tg_id == tg_id)).first()
+        return row.id if row else None

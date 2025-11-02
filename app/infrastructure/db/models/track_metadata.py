@@ -27,6 +27,7 @@ class TrackFeaturesMetadata(SQLModel, table=True):
     __tablename__ = "track_features"
 
     id: str = Field(primary_key=True, foreign_key="tracks.id")
+    user_id: int = Field(index=True, foreign_key="users.id")
     track: "TrackMetadata" = Relationship(back_populates="features")
     start_datetime_utc: datetime | None = None
     end_datetime_utc: datetime | None = None

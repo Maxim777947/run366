@@ -1,7 +1,4 @@
-"""Domain entities.
-
-Constraints:
-- Do not import SQLModel/ORM/DB clients/frameworks.
+"""Доменные сущности треков
 """
 
 from dataclasses import dataclass
@@ -30,7 +27,7 @@ class Track:
 
 @dataclass(frozen=True)
 class TrackFeatures:
-    """Базовая доменная сущность для основных метрик трека"""
+    """Базовая доменная сущность для основных метрик (фичей) трека"""
 
     id: str
     # Время (UTC)
@@ -73,9 +70,18 @@ class TrackFeatures:
 @dataclass(frozen=True)
 class ComputeAndIndexTrackFeaturesCommand:
     """
-    Входные данные сценария: идентификаторы, формат и бинарное содержимое трека.
+    Входные данные сценария: для формирования фичей трека.
     """
 
     track_id: str
     track_format: TrackFormat
     file_bytes: bytes
+
+
+@dataclass(frozen=True)
+class RecommendRoutesCommand:
+    """Команда для получения рекомендаций маршрутов."""
+
+    tg_id: int
+    top_k: int = 3
+    include_other_users: bool = True

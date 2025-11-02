@@ -7,21 +7,15 @@
 - app/domain — чистые сущности и порты (интерфейсы). Никаких ORM/SDK.
 - app/application — сценарии использования (use cases). Оркестрация домена и портов.
 - app/infrastructure — реализации портов (БД, файловое хранилище, парсеры и т.п.).
-- app/adapters — внешние адаптеры (Telegram, HTTP). Сборка зависимостей.
+- app/adapters — внешние адаптеры (Telegram, HTTP, БД и т.д.). Сборка зависимостей.
 
 Быстрый старт:
 
 
 Правила слоёв:
-- Domain не импортирует ничего из infrastructure/adapters.
-- Application зависит только от domain (entities, ports).
-- Infrastructure реализует порты и может зависеть от ORM, клиентов, SDK.
-- Adapters — composition root: создаёт use case и внедряет реализации портов.
+- ORM запросы реализуем ТОЛЬКО в app/infrastructure/repos
+- все обращения к app/infrastructure/repos только через порты
+
 
 Разработка:
-- Добавляйте новые хранилища/клиенты только через порты в domain/ports.py
-- В use case не тяните ORM/HTTP/SDK — только порты.
- - `domain` — бизнес-сущности (`Track`, `TrackFormat`) и интерфейсы (`ports.py`). **Не знает** о БД/Telegram/HTTP.
-- `application` — сценарии (например, `IngestTrackUseCase`). Зависит только от `domain`.
-- `infrastructure` — реализации портов (Postgres, Qdrant, парсеры, файловое хранилище).
-- `adapters` — внешний интерфейс (Telegram/HTTP): тонкие контроллеры, которые вызывают use case.
+- 

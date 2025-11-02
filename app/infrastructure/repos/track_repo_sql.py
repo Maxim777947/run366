@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.domain.models.track import Track, TrackFormat
 from app.domain.ports.track import TrackFormatDetector, TrackIdGenerator, TrackStorage
@@ -35,6 +35,30 @@ class TrackFeaturesRepoSQL:
             for k, v in features.items():
                 setattr(row, k, v)
         self.session.commit()
+
+
+    def get_all_by_user(self, user_id: int) -> list[dict]:
+        """Возвращает все треки пользователя."""
+
+        stmt = select(TrackFeaturesMetadata).where(TrackFeaturesMetadata.user_id == user_id)
+        rows = self.session.exec(stmt).all()
+
+        return [
+            {
+                "id": row.id,
+                "user_id": row.user_id,
+                "total_distance_kilometers": row.total_distance_kilometers,
+                "elevation_gain_per_kilometer": row.elevation_gain_per_kilometer,
+                "path_sinuosity_ratio": row.path_sinuosity_ratio,
+                "start_hour_of_day_utc": row.start_hour_of_day_utc,
+                "day_of_week_index": row.day_of_week_index,
+                "start_latitude_deg": row.start_latitude_deg,
+                "start_longitude_deg": row.start_longitude_deg,
+                "route_curvature_category": row.route_curvature_category,
+                "terrain_category": row.terrain_category,
+            }
+            for row in rows
+        ]
 
 
 class UUIDGen(TrackIdGenerator):

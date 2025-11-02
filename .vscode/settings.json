@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "Парсер",
+        "фичей",
         "dlat",
         "dlon",
         "domian",
@@ -9,6 +10,7 @@
         "qdrant",
         "usecase",
         "usecases",
+        "uselist",
         "Vectorizer"
     ],
     "cSpell.language": "en,ru",
